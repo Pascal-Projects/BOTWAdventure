@@ -1,4 +1,4 @@
-package com.botwAdventureOnline.Singleplayer;
+package com.botwAdventure;
 
 public class Monster extends Character {
     private final Item loot;

@@ -1,4 +1,4 @@
-package com.botwAdventureOnline.Singleplayer;
+package com.botwAdventure;
 
 /**
  * A Korok is a character with a quiz which gives you korokseeds

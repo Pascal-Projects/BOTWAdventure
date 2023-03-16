@@ -1,4 +1,4 @@
-package com.botwAdventureOnline.Singleplayer;
+package com.botwAdventure;
 
 /**
  * A Health Potion is a potion that can be used to regain health

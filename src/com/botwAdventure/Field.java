@@ -1,4 +1,4 @@
-package com.botwAdventureOnline.Singleplayer;
+package com.botwAdventure;
 
 import java.io.Serializable;
 import java.util.ArrayList;

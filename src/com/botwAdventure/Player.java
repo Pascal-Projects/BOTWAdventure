@@ -1,4 +1,4 @@
-package com.botwAdventureOnline.Singleplayer;
+package com.botwAdventure;
 
 import java.io.Serial;
 
@@ -13,12 +13,12 @@ public class Player extends Character {
     /**
      * The X coordinate of the player
      */
-    private final int xCoordinate;
+    private int xCoordinate;
 
     /**
      * The Y coordinate of the player
      */
-    private final int yCoordinate;
+    private int yCoordinate;
 
     /**
      * The player's inventory
@@ -63,12 +63,12 @@ public class Player extends Character {
         return yCoordinate;
     }
 
-    public void setXCoordinate(int xCoordinate) {
-        xCoordinate = xCoordinate;
+    public void setXCoordinate(int pxCoordinate) {
+        xCoordinate = pxCoordinate;
     }
 
-    public void setYCoordinate(int yCoordinate) {
-        yCoordinate = yCoordinate;
+    public void setYCoordinate(int pyCoordinate) {
+        yCoordinate = pyCoordinate;
     }
 
     /**
