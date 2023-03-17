@@ -1,5 +1,6 @@
 package com.botwAdventure;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -7,28 +8,30 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class Main {
 
+    private static final Map<String, Method> commands = new HashMap<>();
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final Random random = new Random();
+    private static final int autoSaveIntervalSeconds = 5;
     private static double difficulty = -1;
-
+    private static Thread autosaveThread;
     private static Player player;
     private static Inventory inventory;
     private static GameMap map;
-    private static final Map<String, Method> commands = new HashMap<>();
     private static String playerName;
     private static int mapWidth;
     private static int mapHeight;
-    private static final Scanner scanner = new Scanner(System.in);
-    private static final Random random = new Random();
 
     /**
      * Method to configure and start the game.
      */
     public static void main(String[] args) throws Exception {
-        String input;
 
         addCommands();
 
-
         initiateGame();
+
+        startAutoSave();
+
 
         if (!"".equals(playerName) && mapHeight > 0 && mapWidth > 0) {
             map = new GameMap(mapWidth, mapHeight);
@@ -37,23 +40,46 @@ public class Main {
             map.addHestu(0, 0);
             map.addMasterSword();
             Random random = new Random();
+            play();
+        }
+    }
+
+    public static void startAutoSave() {
+        Runnable autoSave = () -> {
+            //noinspection InfiniteLoopStatement
             while (true) {
-                System.out.println(">");
-                input = scanner.next();
-                if ("quit".equals(input)) {
-                    scanner.close();
-                    break;
-                } else {
-                    if (commands.containsKey(input)) {
-                        commands.get(input).invoke(null);
-                    } else {
-                        System.out.println("You run around in circles and don't know what to do.");
-                    }
-                    checkHestu();
+                try {
+                    //noinspection BusyWait
+                    Thread.sleep(1000L * autoSaveIntervalSeconds);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-                levelUp();
                 SaveManager.autoSave(player, map);
             }
+        };
+
+        autosaveThread = new Thread(autoSave);
+        autosaveThread.start();
+    }
+
+    public static void play() throws InvocationTargetException, IllegalAccessException {
+        String input;
+        while (true) {
+            System.out.print(">");
+            input = scanner.next();
+            if ("quit".equals(input)) {
+                scanner.close();
+                autosaveThread.interrupt();
+                break;
+            } else {
+                if (commands.containsKey(input)) {
+                    commands.get(input).invoke(null);
+                } else {
+                    System.out.println("You run around in circles and don't know what to do.");
+                }
+                checkHestu();
+            }
+            levelUp();
         }
     }
 
@@ -131,7 +157,7 @@ public class Main {
                         }
                         counter++;
                     }
-                    System.out.println("Which potion would you like to drop?");
+                    System.out.println("Which potion would you like to drop?\n>>>");
                     choice = scanner.nextInt() - 1;
                     if (0 <= choice && choice <= inventory.getPotions().size()) {
                         inventory.setWeight(inventory.getWeight() - inventory.getPotions().get(choice).getWeightInt());
@@ -154,7 +180,7 @@ public class Main {
                             inventory.setWeight(inventory.getWeight() - inventory.getSwords().get(choice).getWeightInt());
                             inventory.removeSword(inventory.getSwords().get(choice));
                         } else {
-                            System.out.println("You try to drop the sword you have equipped! Do you want to drop it anyway?");
+                            System.out.println("You try to drop the sword you have equipped! Do you want to drop it anyway?\n >>>");
                             String answer = scanner.next();
                             if (answer.equalsIgnoreCase("yes")) {
                                 inventory.setWeight(inventory.getWeight() - inventory.getSwords().get(choice).getWeightInt());
@@ -182,6 +208,7 @@ public class Main {
             Scanner scanner = new Scanner(System.in);
             int choice;
             ArrayList<Item> potionList = inventory.getPotions();
+            System.out.println("Your Potions:");
             for (Item potion : potionList) {
                 if (potion.getName().equals("Experience Potion")) {
                     System.out.println(counter + ". " + potion.getName() + "(Health Points: " + potion.getHealthPoints() + ")");
@@ -190,6 +217,7 @@ public class Main {
                 }
                 counter++;
             }
+            System.out.print("Which is the Potion you want to drink?\n>>>");
             choice = scanner.nextInt() - 1;
             if (0 <= choice && choice < potionList.size()) {
                 if (potionList.get(choice).getName().equals("Experience Potion")) {
@@ -225,11 +253,12 @@ public class Main {
             int counter = 1;
             Scanner scanner = new Scanner(System.in);
             int choice;
-            System.out.println("Which sword would you like to equip?");
+            System.out.println("You swords:");
             for (Item sword : inventory.getSwords()) {
                 System.out.println(counter + ". " + sword.getName() + " (Damage: " + sword.getDamage() + ")");
                 counter++;
             }
+            System.out.print("Which sword do you want to equip\n >>>");
             choice = scanner.nextInt() - 1;
             if (0 <= choice && choice <= inventory.getSwords().size()) {
                 player.setAd(inventory.getSwords().get(choice).getDamageInt());
@@ -246,7 +275,7 @@ public class Main {
         if (map.getLoot(player).size() > 0) {
             int counter = 1;
             Scanner scanner = new Scanner(System.in);
-            System.out.println("Which item would you like to pick up?");
+            System.out.println("The items on this field:");
             for (Item item : map.getLoot(player)) {
                 if (item.getName().equals("Experience Potion")) {
                     System.out.println(counter + ". " + item.getName() + " (Experience points: " + item.getExperiencePoints()
@@ -260,7 +289,7 @@ public class Main {
                 }
                 counter++;
             }
-            System.out.println("What is the Item you would like to buy?");
+            System.out.println("What is the Item you would like to pickup?\n >>>");
             int choice = scanner.nextInt();
             if (choice == 0) {
                 System.out.println("Please select a item");
@@ -406,7 +435,7 @@ public class Main {
             System.out.println("Solve the Puzzle from the korok to get a korokseed!");
             num1 = random.nextInt(1000);
             num2 = random.nextInt(1000);
-            System.out.println("What is the sum of " + num1 + " and " + num2 + "?");
+            System.out.println("What is the sum of " + num1 + " and " + num2 + "?\n >>>");
             answer = scanner.next();
             if (answer.equals(Integer.toString(num1 + num2))) {
                 System.out.println("Correct!");
@@ -429,7 +458,7 @@ public class Main {
             if (inventory.getKorokSeeds() > 0) {
                 if (Hestu.getHestuUsed() <= 2) {
                     if (inventory.getKorokSeeds() >= 1) {
-                        System.out.println("Do you want to increase the maximum weight of your inventory for one korokseed?");
+                        System.out.println("Do you want to increase the maximum weight of your inventory for one korokseed?\n >>>");
                         input = scanner.next();
                         if ("yes".equalsIgnoreCase(input)) {
                             inventory.setMaxWeight(inventory.getMaxWeight() + 1);
@@ -441,7 +470,7 @@ public class Main {
                     }
                 } else {
                     if (inventory.getKorokSeeds() >= (Hestu.getHestuUsed() - 1)) {
-                        System.out.println("Do you want to increase the maximum weight of your inventory for " + (Hestu.getHestuUsed() - 1) + " korokseeds?");
+                        System.out.println("Do you want to increase the maximum weight of your inventory for " + (Hestu.getHestuUsed() - 1) + " korokseeds?\n >>>");
                         input = scanner.next();
                         if ("yes".equalsIgnoreCase(input)) {
                             inventory.setMaxWeight(inventory.getMaxWeight() + 1);

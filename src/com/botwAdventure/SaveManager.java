@@ -3,7 +3,11 @@ package com.botwAdventure;
 
 import java.io.*;
 
-public class SaveManager {
+public class SaveManager extends Thread {
+
+    public SaveManager() {
+        super("AutosaveManager");
+    }
 
     /**
      * Saves the current game state to a file every time the player did something
@@ -13,7 +17,7 @@ public class SaveManager {
      */
     public static void autoSave(Player player, GameMap map) {
         try {
-            FileOutputStream fos = new FileOutputStream(".\\src\\com\\botwAdventureOnline\\Singleplayer\\saves\\save.txt");
+            FileOutputStream fos = new FileOutputStream(".\\src\\com\\botwAdventure\\saves\\save.txt");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
 
             oos.writeObject(player);
@@ -24,6 +28,7 @@ public class SaveManager {
         } catch (IOException e) {
             System.out.println("Error initializing stream");
         }
+
     }
 
     /**
@@ -34,7 +39,7 @@ public class SaveManager {
      */
     public static void saveGame(Player player, GameMap map) {
         try {
-            FileOutputStream fos = new FileOutputStream(".\\src\\com\\botwAdventureOnline\\Singleplayer\\saves\\save.txt");
+            FileOutputStream fos = new FileOutputStream(".\\src\\com\\botwAdventure\\saves\\save.txt");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
 
             oos.writeObject(player);
@@ -42,6 +47,7 @@ public class SaveManager {
 
             fos.close();
             oos.close();
+            System.out.println("Saved!");
         } catch (IOException e) {
             System.out.println("Error initializing stream");
         }
@@ -53,7 +59,7 @@ public class SaveManager {
      */
     public static void loadGame() {
         try {
-            FileInputStream fis = new FileInputStream(".\\src\\com\\botwAdventureOnline\\Singleplayer\\saves\\save.txt");
+            FileInputStream fis = new FileInputStream(".\\src\\com\\botwAdventure\\saves\\save.txt");
             ObjectInputStream ois = new ObjectInputStream(fis);
 
             Player player = (Player) ois.readObject();
@@ -72,4 +78,6 @@ public class SaveManager {
             System.out.println("Error initializing stream");
         }
     }
+
+
 }
